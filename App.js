@@ -1,8 +1,26 @@
+//import LoginScreen from "./screens/LoginScreen.js";
+//import HomeScreen from "./screens/HomeScreen.js";
 import React from 'react';
 import { StyleSheet, Text, View, TextInput, FlatList, Button, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import { ListItem } from 'react-native-elements';
 import { BarCodeScanner } from 'expo-barcode-scanner';
+import * as Google from "expo-google-app-auth";
+
+const ANDROID_CLIENT_ID = "91528963395-991jv40h0q0ttimemukjo4qn 7l2i8jjd.apps.googleusercontent.com";
+
+//const IOS_CLIENT_ID = "your-ios-client-id";
+//import firebase from 'firebase';
+//import { firebaseConfig } from './config';
+
+//firebase.initializeApp(firebaseConfig);
+
+/*const MainNavigator = createSwitchNavigator({
+  Login: {screen: LoginScreen},
+  Home: {screen: HomeScreen}
+});
+
+const App = createAppContainer(MainNavigator);*/
 
 export default class App extends React.Component {
 
@@ -12,9 +30,11 @@ export default class App extends React.Component {
     barcodes: [],
     description: '',
     foods: [],
+    userRecipes: [],
     data: '',
     cameraOn: false,
     hasPermission: null,
+    loggedIn: true,
     scanned: false
   };
 
@@ -32,10 +52,45 @@ export default class App extends React.Component {
     this.setState({ cameraOn: false })
   };
 
-  handleBackHome() {
+  handleBackSearch() {
     this.setState({ cameraOn: false });
     this.setState({ scanned: false });
+    this.setState({ makingRecipe: true});
   }
+
+  renderLogin(){
+    return (
+      <View style={{
+        justifyContent: "center",
+        alignItems: "stretch", 
+        }}>
+        <Text style={styles.title}
+          placeholder="TEST LOGIN"
+        />
+      </View>
+    );
+  }
+
+  renderHomePage(){
+    return (
+      <View style={{
+        justifyContent: "center",
+        alignItems: "stretch", 
+        }}>
+        <Text style = {styles.title}> Welcome USER </Text>
+        <Button 
+        onPress = {() => this.setState({ makingRecipe: true })}
+        title = "Add a Recipe"
+        ></Button>
+        <Text style = {styles.smallText}> Your Recipes: </Text>
+        <FlatList 
+          data={this.state.userRecipes}
+          renderItem={this.renderItem}
+        />
+      </View>
+    );
+  }
+  
 
   renderCamera() {
   if (this.state.hasPermission === false || this.state.hasPermission === null) {
@@ -44,36 +99,40 @@ export default class App extends React.Component {
   return (
     <View style={styles.container}>
       <BarCodeScanner
-        onBarCodeScanned={this.state.scanned ? undefined : this.handleBarCodeScanned}
+        onBarCo deScanned={this.state.scanned ? undefined : this.handleBarCodeScanned}
         style={StyleSheet.absoluteFillObject}
       />
-      <Button title={'Go Back'} onPress={() => this.handleBackHome()} />
+      <Button title={'Go Back'} onPress={() => this.handleBackSearch()} />
     </View>
   )
   }
 
-  renderHomePage () {
+  renderRecipePage () {
     return (
-      <View style={{
-        justifyContent: "center",
-        alignItems: "stretch", 
-        }}>
-        <Text style={styles.title}>Create Recipe</Text>
+      
+      <View>
+        <Button
+        onPress = {() => this.setState({ makingRecipe: false })}
+        title = "Cancel"
+        ></Button>
+        <TextInput style={styles.title}
+          placeholder="Enter recipe name"
+        />
         <TextInput style = {styles.search} 
-          onChangeText={this.handleInputTextChange} 
+          onChangeText={this.handleInputSearch} 
           value={this.state.query}
-          placeholder="Enter a meal or ingredient"
+          placeholder="Search for item or ingredient"
         />
         <Button 
-        onPress = {() => this.setState({ cameraOn: true })}
+        onPress = {() => this.setState({ cameraOn: true, makingRecipe: false })}
         title = "Scan Barcode"
         ></Button>
         <FlatList 
           data={this.state.foods}
           renderItem={this.renderItem}
           keyExtractor={item => item.fdcID}
+          //extraData = {selectedId} will be used for selection of item to add
         />
-        
       </View>
     );
   }
@@ -115,25 +174,36 @@ export default class App extends React.Component {
     }
   };
 
-  handleInputTextChange = (newText) => {
+  handleInputSearch = (newText) => {
     this.search(newText);
     this.setState({ query: newText })
   }
 
   render() {
-    if (!this.state.cameraOn){
-      return this.renderHomePage();
+    if (!this.state.loggedIn){
+      return this.renderLogin();
     }
-    else {
-      return this.renderCamera();
+
+    else{
+      if(this.state.cameraOn && !this.state.makingRecipe){
+        return this.renderCamera();
+      }
+      
+      else if(!this.state.cameraOn &&this.state.makingRecipe) {
+        return this.renderRecipePage();
+      }
+
+      else{
+        return this.renderHomePage();
+      }
     }
   }
 }
 
 const styles = StyleSheet.create({
   title: {
-    paddingTop:100,
-    fontSize: 50,
+    paddingTop: 30,
+    fontSize: 40,
     color: "#05CDE4",
   },
   search: {
@@ -157,5 +227,9 @@ const styles = StyleSheet.create({
     flex: 0.1,
     alignSelf: 'flex-end',
     alignItems: 'center',
+  },
+  smallText:{
+    fontSize: 20,
+    color: "#05CDE4",
   },
 })
