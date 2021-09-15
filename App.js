@@ -32,6 +32,11 @@ export default class App extends React.Component {
     this.setState({ cameraOn: false })
   };
 
+  handleBackHome() {
+    this.setState({ cameraOn: false });
+    this.setState({ scanned: false });
+  }
+
   renderCamera() {
   if (this.state.hasPermission === false || this.state.hasPermission === null) {
     return <Text>No access to camera</Text>;
@@ -42,7 +47,7 @@ export default class App extends React.Component {
         onBarCodeScanned={this.state.scanned ? undefined : this.handleBarCodeScanned}
         style={StyleSheet.absoluteFillObject}
       />
-      <Button title={'Go Back'} onPress={() => setScanned(false)} />
+      <Button title={'Go Back'} onPress={() => this.handleBackHome()} />
     </View>
   )
   }
@@ -51,7 +56,7 @@ export default class App extends React.Component {
     return (
       <View style={{
         justifyContent: "center",
-        alignItems: "center", 
+        alignItems: "stretch", 
         }}>
         <Text style={styles.title}>Create Recipe</Text>
         <TextInput style = {styles.search} 
