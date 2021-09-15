@@ -3,6 +3,23 @@ import { StyleSheet, Text, View, TextInput, FlatList, Button, TouchableOpacity }
 import axios from 'axios';
 import { ListItem } from 'react-native-elements';
 import { BarCodeScanner } from 'expo-barcode-scanner';
+import { createSwitchNavigator, createAppContainer } from 'react-navigation';
+import firebase from 'firebase';
+import { firebaseConfig } from './config';
+
+import LoginScreen from './screens/LoginScreen.js';
+import LoadingScreen from './screens/LoadingScreen.js';
+import HomeScreen from './screens/HomeScreen.js';
+
+firebase.initializeApp(firebaseConfig);
+
+const AppSwitchNavigator = createSwitchNavigator({
+  LoadingScreen:LoadingScreen,
+  LoginScreen:LoginScreen,
+  HomeScreen:HomeScreen
+})
+
+const AppNavigator = createAppContainer(AppSwitchNavigator);
 
 export default class App extends React.Component {
 
@@ -32,7 +49,7 @@ export default class App extends React.Component {
     this.setState({ cameraOn: false })
   };
 
-  handleBackHome() {
+  handleBackSearch() {
     this.setState({ cameraOn: false });
     this.setState({ scanned: false });
   }
@@ -47,7 +64,7 @@ export default class App extends React.Component {
         onBarCodeScanned={this.state.scanned ? undefined : this.handleBarCodeScanned}
         style={StyleSheet.absoluteFillObject}
       />
-      <Button title={'Go Back'} onPress={() => this.handleBackHome()} />
+      <Button title={'Go Back'} onPress={() => this.handleBackSearch()} />
     </View>
   )
   }
@@ -58,9 +75,11 @@ export default class App extends React.Component {
         justifyContent: "center",
         alignItems: "stretch", 
         }}>
-        <Text style={styles.title}>Create Recipe</Text>
+        <TextInput style={styles.title}
+          placeholder="RecipeName"
+        />
         <TextInput style = {styles.search} 
-          onChangeText={this.handleInputTextChange} 
+          onChangeText={this.handleInputSearch} 
           value={this.state.query}
           placeholder="Enter a meal or ingredient"
         />
@@ -73,7 +92,6 @@ export default class App extends React.Component {
           renderItem={this.renderItem}
           keyExtractor={item => item.fdcID}
         />
-        
       </View>
     );
   }
@@ -115,7 +133,7 @@ export default class App extends React.Component {
     }
   };
 
-  handleInputTextChange = (newText) => {
+  handleInputSearch = (newText) => {
     this.search(newText);
     this.setState({ query: newText })
   }
