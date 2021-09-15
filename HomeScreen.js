@@ -1,18 +1,18 @@
-import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, FlatList, Button, TouchableOpacity } from 'react-native';
+import { React, Component } from "react";
+import { StyleSheet, View, Button, Text } from "react-native";
 
-class HomeScreen extends Component {
+export default class HomeScreen extends Component {
     render() {
         return (
-            <View style={styles.container}>
-                <Text>HomeScreen</Text>
+            <View style = {styles.container}>
+                <Text> HomeScreen </Text>
+                <Text> Welcome, {this.props.navigation.getParam("username")}</Text>
+                <Button title = "Sign out" onPress = {() => this.props.navigation.navigate("Login")}/>
             </View>
-        );
+        )
     }
-
 }
 
-export default LoginScreen;
 
 const styles = StyleSheet.create({
     container: {
@@ -20,4 +20,4 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center'
     }
-});
+})
