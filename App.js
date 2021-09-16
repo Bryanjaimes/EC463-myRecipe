@@ -61,9 +61,6 @@ export default class App extends React.Component {
     this.setState({ makingRecipe: true});
   }
 
-
-
-
   signInWithGoogleAsync = async () => {
     try {
       const result = await Google.logInAsync({
@@ -86,8 +83,6 @@ export default class App extends React.Component {
       return { error: true };
     }
   }
-
-
 
   renderLogin(){
     return (
@@ -157,17 +152,13 @@ export default class App extends React.Component {
     return (
       <View style={styles.container}>
         <BarCodeScanner
-          onBarCo deScanned={this.state.scanned ? undefined : this.handleBarCodeScanned}
+          onBarCodeScanned={this.state.scanned ? undefined : this.handleBarCodeScanned}
           style={StyleSheet.absoluteFillObject}
         />
         <Button title={'Go Back'} onPress={() => this.handleBackSearch()} />
       </View>
     )
   }
-
-
-
-
 
   renderItem = ({ item }) => (
   <ListItem bottomDivider>
