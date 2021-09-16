@@ -1,25 +1,29 @@
+//import LoginScreen from "./screens/LoginScreen.js";
+//import HomeScreen from "./screens/HomeScreen.js";
 import React from 'react';
 import { StyleSheet, Text, View, TextInput, FlatList, Button, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import { ListItem } from 'react-native-elements';
 import { BarCodeScanner } from 'expo-barcode-scanner';
-import { createSwitchNavigator, createAppContainer } from 'react-navigation';
-import firebase from 'firebase';
-import { firebaseConfig } from './config';
+import * as Google from "expo-google-app-auth";
 
-import LoginScreen from './screens/LoginScreen.js';
-import LoadingScreen from './screens/LoadingScreen.js';
-import HomeScreen from './screens/HomeScreen.js';
 
-firebase.initializeApp(firebaseConfig);
+const ANDROID_CLIENT_ID = "91528963395-991jv40h0q0ttimemukjo4qn 7l2i8jjd.apps.googleusercontent.com";
 
-const AppSwitchNavigator = createSwitchNavigator({
-  LoadingScreen:LoadingScreen,
-  LoginScreen:LoginScreen,
-  HomeScreen:HomeScreen
-})
+const IOS_CLIENT_ID = "your-ios-client-id";
 
-const AppNavigator = createAppContainer(AppSwitchNavigator);
+
+//import firebase from 'firebase';
+//import { firebaseConfig } from './config';
+
+//firebase.initializeApp(firebaseConfig);
+
+/*const MainNavigator = createSwitchNavigator({
+  Login: {screen: LoginScreen},
+  Home: {screen: HomeScreen}
+});
+
+const App = createAppContainer(MainNavigator);*/
 
 export default class App extends React.Component {
 
@@ -29,9 +33,11 @@ export default class App extends React.Component {
     barcodes: [],
     description: '',
     foods: [],
+    userRecipes: [],
     data: '',
     cameraOn: false,
     hasPermission: null,
+    loggedIn: true,
     scanned: false
   };
 
@@ -52,49 +58,116 @@ export default class App extends React.Component {
   handleBackSearch() {
     this.setState({ cameraOn: false });
     this.setState({ scanned: false });
+    this.setState({ makingRecipe: true});
   }
 
-  renderCamera() {
-  if (this.state.hasPermission === false || this.state.hasPermission === null) {
-    return <Text>No access to camera</Text>;
-  }
-  return (
-    <View style={styles.container}>
-      <BarCodeScanner
-        onBarCodeScanned={this.state.scanned ? undefined : this.handleBarCodeScanned}
-        style={StyleSheet.absoluteFillObject}
-      />
-      <Button title={'Go Back'} onPress={() => this.handleBackSearch()} />
-    </View>
-  )
+
+
+
+  signInWithGoogleAsync = async () => {
+    try {
+      const result = await Google.logInAsync({
+        androidClientId: ANDROID_CLIENT_ID,
+        //iosClientId: YOUR_CLIENT_ID_HERE,
+        success: ["profile", "email"]
+      });
+
+      if (result.type === "success") {
+        console.log("LoginScreen.js", result.user.givenName);
+        this.props.navigation.navigate("Home", {
+          username: result.user.givenName
+        })
+        return result.accessToken;
+      } else {
+        return { cancelled: true };
+      }
+    } catch (error) {
+      console.log("LoginScreen.js", error)
+      return { error: true };
+    }
   }
 
-  renderHomePage () {
+
+
+  renderLogin(){
     return (
       <View style={{
         justifyContent: "center",
         alignItems: "stretch", 
         }}>
+        <Button title = "Google Sign in" onPress = {() => this.signInWithGoogle}/>
+      </View>
+    );
+  }
+
+  renderHomePage(){
+    return (
+      <View style={{
+        justifyContent: "center",
+        alignItems: "stretch", 
+        }}>
+        <Text style = {styles.title}> Welcome USER </Text>
+        <Button 
+        onPress = {() => this.setState({ makingRecipe: true })}
+        title = "Add a Recipe"
+        ></Button>
+        <Text style = {styles.smallText}> Your Recipes: </Text>
+        <FlatList 
+          data={this.state.userRecipes}
+          renderItem={this.renderItem}
+        />
+      </View>
+    );
+  }
+
+  renderRecipePage () {
+    return (
+      
+      <View>
+        <Button
+        onPress = {() => this.setState({ makingRecipe: false })}
+        title = "Cancel"
+        ></Button>
         <TextInput style={styles.title}
-          placeholder="RecipeName"
+          placeholder="Enter recipe name"
         />
         <TextInput style = {styles.search} 
           onChangeText={this.handleInputSearch} 
           value={this.state.query}
-          placeholder="Enter a meal or ingredient"
+          placeholder="Search for item or ingredient"
         />
         <Button 
-        onPress = {() => this.setState({ cameraOn: true })}
+        onPress = {() => this.setState({ cameraOn: true, makingRecipe: false })}
         title = "Scan Barcode"
         ></Button>
         <FlatList 
           data={this.state.foods}
           renderItem={this.renderItem}
           keyExtractor={item => item.fdcID}
+          //extraData = {selectedId} will be used for selection of item to add
         />
       </View>
     );
   }
+
+  renderCamera() {
+    if (this.state.hasPermission === false || this.state.hasPermission === null) {
+      return <Text>No access to camera</Text>;
+    }
+    return (
+      <View style={styles.container}>
+        <BarCodeScanner
+          onBarCo deScanned={this.state.scanned ? undefined : this.handleBarCodeScanned}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <Button title={'Go Back'} onPress={() => this.handleBackSearch()} />
+      </View>
+    )
+  }
+
+
+
+
 
   renderItem = ({ item }) => (
   <ListItem bottomDivider>
@@ -139,19 +212,30 @@ export default class App extends React.Component {
   }
 
   render() {
-    if (!this.state.cameraOn){
-      return this.renderHomePage();
+    if (!this.state.loggedIn){
+      return this.renderLogin();
     }
-    else {
-      return this.renderCamera();
+
+    else{
+      if(this.state.cameraOn && !this.state.makingRecipe){
+        return this.renderCamera();
+      }
+      
+      else if(!this.state.cameraOn &&this.state.makingRecipe) {
+        return this.renderRecipePage();
+      }
+
+      else{
+        return this.renderHomePage();
+      }
     }
   }
 }
 
 const styles = StyleSheet.create({
   title: {
-    paddingTop:100,
-    fontSize: 50,
+    paddingTop: 30,
+    fontSize: 40,
     color: "#05CDE4",
   },
   search: {
@@ -175,5 +259,9 @@ const styles = StyleSheet.create({
     flex: 0.1,
     alignSelf: 'flex-end',
     alignItems: 'center',
+  },
+  smallText:{
+    fontSize: 20,
+    color: "#05CDE4",
   },
 })
