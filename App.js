@@ -1,7 +1,7 @@
 //import LoginScreen from "./screens/LoginScreen.js";
 //import HomeScreen from "./screens/HomeScreen.js";
 import React from 'react';
-import { StyleSheet, Text, View, TextInput, FlatList, Button, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TextInput, FlatList, Button, TouchableOpacity} from 'react-native';
 import axios from 'axios';
 import { ListItem } from 'react-native-elements';
 import { BarCodeScanner } from 'expo-barcode-scanner';
@@ -32,13 +32,55 @@ export default class App extends React.Component {
     query: '',
     barcodes: [],
     description: '',
+    ingredients: '',
+    nutrients: [],
     foods: [],
     userRecipes: [],
     data: '',
     cameraOn: false,
     hasPermission: null,
     loggedIn: true,
-    scanned: false
+    scanned: false,
+    showNutritionInfo: false,
+
+    fakeRecipes: [
+      {
+        id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
+        title: 'Recipe 1',
+      },
+      {
+        id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f63',
+        title: 'Recipe 2',
+      },
+      {
+        id: '58694a0f-3da1-471f-bd96-145571e29d72',
+        title: 'Recipe 3',
+      },
+      {
+        id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28bww',
+        title: 'Recipe 4',
+      },
+      {
+        id: '3ac68afc-c605-48d3-a4f8-fbd9w7f63',
+        title: 'Recipe 5',
+      },
+      {
+        id: '58694a0f-3da1-471f-bd96-efnje29d72',
+        title: 'Recipe 6',
+      },
+      {
+        id: 'bd7acbea-c1b1-46c2-aed5d53abb28bww',
+        title: 'Recipe 7',
+      },
+      {
+        id: '3ac68afc-c605-48a4f8-fbd9w7f63',
+        title: 'Recipe 8',
+      },
+      {
+        id: '58694a0f-3da16-efnje29d72',
+        title: 'Recipe 9',
+      },
+    ]
   };
 
   async componentDidMount() {
@@ -46,19 +88,11 @@ export default class App extends React.Component {
     this.setState({ hasPermission: status === 'granted' });
   }
 
-  handleBarCodeScanned = async ({ type, data }) => {
-    this.setState({ scanned: true })
-    this.search(data.substring(1));
-    this.setState({ scanned:false });
-    alert(` Bar code with type ${type} and data ${data} has been scanned!`);
-    //alert(`Scanned successfully! \n \n ${this.state.description}`)
-    this.setState({ cameraOn: false })
-  };
-
   handleBackSearch() {
     this.setState({ cameraOn: false });
     this.setState({ scanned: false });
-    this.setState({ makingRecipe: true});
+    this.setState({ makingRecipe: false});
+    this.setState({ showNutritionInfo: false});
   }
 
   signInWithGoogleAsync = async () => {
@@ -101,29 +135,31 @@ export default class App extends React.Component {
         justifyContent: "center",
         alignItems: "stretch", 
         }}>
-        <Text style = {styles.title}> Welcome USER </Text>
-        <Button 
-        onPress = {() => this.setState({ makingRecipe: true })}
-        title = "Add a Recipe"
-        ></Button>
+        <Text style = {{paddingTop: "20%", alignSelf: 'center',}} > Signed in as</Text>
+        <Text style = {styles.title}> Bjaimes </Text>
         <Text style = {styles.smallText}> Your Recipes: </Text>
         <FlatList 
-          data={this.state.userRecipes}
-          renderItem={this.renderItem}
+          style={{ height: "40%", paddingBottom: "30%" }}
+          data={this.state.fakeRecipes}
+          renderItem={this.renderRecipe}
         />
+        <Button 
+        style = {{ backgroundColor: "green" }}
+        onPress = {() => this.setState({ makingRecipe: true })}
+        title = "Create New Recipe"
+        ></Button>
+        <Button 
+        onPress = {() => this.setState({ cameraOn: true, makingRecipe: false })}
+        title = "Scan Barcode"
+        ></Button>
       </View>
     );
   }
 
   renderRecipePage () {
     return (
-      
-      <View>
-        <Button
-        onPress = {() => this.setState({ makingRecipe: false })}
-        title = "Cancel"
-        ></Button>
-        <TextInput style={styles.title}
+      <View style={styles.container}>
+        <TextInput style={styles.smallText}
           placeholder="Enter recipe name"
         />
         <TextInput style = {styles.search} 
@@ -135,9 +171,13 @@ export default class App extends React.Component {
         onPress = {() => this.setState({ cameraOn: true, makingRecipe: false })}
         title = "Scan Barcode"
         ></Button>
+        <Button
+        onPress = {() => this.setState({ makingRecipe: false })}
+        title = "Cancel"
+        ></Button>
         <FlatList 
           data={this.state.foods}
-          renderItem={this.renderItem}
+          renderItem={this.renderFood}
           keyExtractor={item => item.fdcID}
           //extraData = {selectedId} will be used for selection of item to add
         />
@@ -150,39 +190,97 @@ export default class App extends React.Component {
       return <Text>No access to camera</Text>;
     }
     return (
-      <View style={styles.container}>
+      <View style={{ flex:1 }}>
         <BarCodeScanner
           onBarCodeScanned={this.state.scanned ? undefined : this.handleBarCodeScanned}
           style={StyleSheet.absoluteFillObject}
         />
-        <Button title={'Go Back'} onPress={() => this.handleBackSearch()} />
+        <Button title={'Go Back'} 
+         style = {styles.goBack}
+         onPress={() => this.handleBackSearch()} />
       </View>
     )
   }
 
-  renderItem = ({ item }) => (
-  <ListItem bottomDivider>
-    <Text>{item.description}</Text>
-  </ListItem>
-  )
+  renderNutritionPage() {
+    return (
+      <View style={styles.container}>
+        <Text style = { styles.description }>{ this.state.description }</Text>
+        <Text style = { styles.ingredients }>Ingredients:</Text>
+        <Text>{this.state.ingredients}</Text>
+        <Text style = { styles.ingredients }>Nutrients:</Text>
+        <FlatList 
+        data={this.state.nutrients}
+        renderItem={this.renderNutrient}
+        keyExtractor={item => item.nutrientID}
+        />
+        <Button title={'Add to Recipe'} 
+         onPress={() => this.handleBackSearch()} />
+        <Button title={'Go Back'} 
+         style = {styles.goBack}
+         onPress={ () => { this.setState({showNutritionInfo: false, makingRecipe: true}) }}/>
+      </View>
+    )
+  }
+
+  renderFood = ({ item }) => (
+    <ListItem bottomDivider>
+      <Button
+      onPress={() => {
+        this.search(item.description);
+        console.log(item.description);
+        this.setState({ showNutritionInfo: true, makingRecipe: false, description: item.description, scanned: true });
+      }}
+      title = {item.description}>
+      </Button>
+    </ListItem>
+    )
+
+  renderNutrient = ({ item }) => (
+    <ListItem bottomDivider>
+      <Text>{item.nutrientName}: {item.value} {item.unitName}</Text>
+    </ListItem>
+    )
+
+    renderIngredients = ({ item }) => (
+      <ListItem>
+        <Text>{ this.state.ingredients }</Text>
+      </ListItem>
+    )
+
+  renderRecipe = ({ item }) => (
+    <ListItem bottomDivider>
+      <Button
+      title = {item.title}>
+      </Button>
+    </ListItem>
+    )
+
+  handleBarCodeScanned = async ({ type, data }) => {
+    this.setState({ scanned: true })
+    this.search(data.substring(1));
+    //alert(` Bar code with type ${type} and data ${data} has been scanned!`);
+    alert(`Scanned successfully!`)
+    this.setState({ cameraOn: false })
+  };
 
   search = async (val) => {
+    this.setState({ showNutritionInfo: true })
     console.log('searching');
-    this.setState({ loading: true });
     try{
       const res = await axios(
         `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=fZ4u39zBJOhv0a2FK1EY8sGRBaYm7R0mYa8JSkl1&query=${val}`
       );  
-      
-      this.state.scanned ? console.log('true') : console.log('false');
+
       if (this.state.scanned){
-        var description = await res.foods[0].description;
-        console.log('description', description);
-        this.setState({ description }); 
+        var description = res.data.foods[0].description;
+        var ingredients = res.data.foods[0].ingredients;
+        var nutrients = res.data.foods[0].foodNutrients;
+        console.log(nutrients);
+        this.setState({ description: description, ingredients: ingredients, nutrients: nutrients }); 
       }
-      else{
+      else {
         var foods = await res.data.foods;
-        var data = await res.data;
         this.setState({ foods });  
       }
 
@@ -208,14 +306,15 @@ export default class App extends React.Component {
     }
 
     else{
-      if(this.state.cameraOn && !this.state.makingRecipe){
+      if(this.state.cameraOn){
         return this.renderCamera();
       }
-      
-      else if(!this.state.cameraOn &&this.state.makingRecipe) {
+      else if(this.state.makingRecipe) {
         return this.renderRecipePage();
       }
-
+      else if(this.state.showNutritionInfo) {
+        return this.renderNutritionPage();
+      }
       else{
         return this.renderHomePage();
       }
@@ -225,15 +324,21 @@ export default class App extends React.Component {
 
 const styles = StyleSheet.create({
   title: {
-    paddingTop: 30,
-    fontSize: 40,
+    fontSize: 60,
     color: "#05CDE4",
+    alignSelf: 'center',
   },
   search: {
     height: 100,
+    fontSize: 20,
+    color: "#05CDE4",
+    alignSelf: 'center',
+    paddingTop: "10%",
+    paddingBottom: "5%"
   },
   container: {
-    flex: 1,
+    marginHorizontal: 20,
+    height:"97%"
   },
   scanner: {
     flex: 1,
@@ -247,12 +352,31 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   goBack: {
-    flex: 0.1,
+    paddingTop:300,
     alignSelf: 'flex-end',
     alignItems: 'center',
   },
   smallText:{
+    fontSize: 30,
+    color: "#05CDE4",
+    alignSelf: 'center',
+    paddingTop: "20%",
+    paddingBottom: "5%"
+  },
+  button:{
+    fontSize: 100
+  },
+  description:{
+    paddingTop: "15%",
     fontSize: 20,
     color: "#05CDE4",
+    alignSelf: 'center',
+    fontWeight: "bold"
   },
+  ingredients:{
+    paddingTop: "5%",
+    fontSize: 15,
+    color: "#05CDE4",
+    alignSelf: 'center',
+  }
 })
