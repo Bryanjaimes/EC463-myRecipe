@@ -5,13 +5,24 @@ import { StyleSheet, Text, View, TextInput, FlatList, Button, TouchableOpacity} 
 import axios from 'axios';
 import { ListItem } from 'react-native-elements';
 import { BarCodeScanner } from 'expo-barcode-scanner';
-import * as Google from "expo-google-app-auth";
+//import * as Google from "expo-google-app-auth";
+import * as firebase from 'firebase';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBZj11ieB3IsaV2gF20oUzO2n6bWxQp2pM",
+  authDomain: "myrecipe-999d6.firebaseapp.com",
+  projectId: "myrecipe-999d6",
+  storageBucket: "myrecipe-999d6.appspot.com",
+  messagingSenderId: "91528963395",
+  appId: "1:91528963395:web:1f4a463a081b7e2768fbf6",
+  measurementId: "G-ZMMBSYD60X"
+};
 
 
-const ANDROID_CLIENT_ID = "91528963395-991jv40h0q0ttimemukjo4qn 7l2i8jjd.apps.googleusercontent.com";
 
-const IOS_CLIENT_ID = "your-ios-client-id";
+//const ANDROID_CLIENT_ID = "91528963395-991jv40h0q0ttimemukjo4qn 7l2i8jjd.apps.googleusercontent.com";
 
+//const IOS_CLIENT_ID = "your-ios-client-id";
 
 //import firebase from 'firebase';
 //import { firebaseConfig } from './config';
@@ -22,8 +33,8 @@ const IOS_CLIENT_ID = "your-ios-client-id";
   Login: {screen: LoginScreen},
   Home: {screen: HomeScreen}
 });
-
 const App = createAppContainer(MainNavigator);*/
+
 
 export default class App extends React.Component {
 
@@ -83,6 +94,8 @@ export default class App extends React.Component {
     ]
   };
 
+
+
   async componentDidMount() {
     const { status } = await BarCodeScanner.requestPermissionsAsync();
     this.setState({ hasPermission: status === 'granted' });
@@ -95,37 +108,32 @@ export default class App extends React.Component {
     this.setState({ showNutritionInfo: false});
   }
 
-  signInWithGoogleAsync = async () => {
-    try {
-      const result = await Google.logInAsync({
-        androidClientId: ANDROID_CLIENT_ID,
-        //iosClientId: YOUR_CLIENT_ID_HERE,
-        success: ["profile", "email"]
-      });
-
-      if (result.type === "success") {
-        console.log("LoginScreen.js", result.user.givenName);
-        this.props.navigation.navigate("Home", {
-          username: result.user.givenName
-        })
-        return result.accessToken;
-      } else {
-        return { cancelled: true };
-      }
-    } catch (error) {
-      console.log("LoginScreen.js", error)
-      return { error: true };
-    }
-  }
-
   renderLogin(){
     return (
-      <View style={{
-        justifyContent: "center",
-        alignItems: "stretch", 
-        }}>
-        <Button title = "Google Sign in" onPress = {() => this.signInWithGoogle}/>
-      </View>
+      <Container style = {styles.container}>
+        <Form>
+          <Item floatingLabel>
+            <Label>Email</Label>
+            <Input 
+              autoCorrect = {false}
+              autoCapitalize = "none"
+              />
+          </Item>
+
+          <Item floatingLabel>
+            <Label>Password</Label>
+            <Input 
+              secureTextEntry = {true}
+              autoCorrect = {false}
+              autoCapitalize = "none"
+              />
+          </Item>
+
+        <Button 
+        title = "Login"
+        ></Button>
+        </Form>
+      </Container>
     );
   }
 
@@ -339,6 +347,12 @@ const styles = StyleSheet.create({
   container: {
     marginHorizontal: 20,
     height:"97%"
+  },
+  container2: {
+    flex: 1,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    padding: 10
   },
   scanner: {
     flex: 1,
