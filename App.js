@@ -1,98 +1,181 @@
-//import LoginScreen from "./screens/LoginScreen.js";
-//import HomeScreen from "./screens/HomeScreen.js";
 import React from 'react';
 import { StyleSheet, Text, View, TextInput, FlatList, Button, TouchableOpacity} from 'react-native';
 import axios from 'axios';
 import { ListItem } from 'react-native-elements';
 import { BarCodeScanner } from 'expo-barcode-scanner';
-//import * as Google from "expo-google-app-auth";
-import * as firebase from 'firebase';
+import firebase from 'firebase'
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBZj11ieB3IsaV2gF20oUzO2n6bWxQp2pM",
+  apiKey: "AIzaSyBBUdYxMqQ64il6FfH3zpHvQbC5Qn0Y72o",
   authDomain: "myrecipe-999d6.firebaseapp.com",
   projectId: "myrecipe-999d6",
   storageBucket: "myrecipe-999d6.appspot.com",
   messagingSenderId: "91528963395",
-  appId: "1:91528963395:web:1f4a463a081b7e2768fbf6",
-  measurementId: "G-ZMMBSYD60X"
+  appId: "1:91528963395:web:e57efbad4fcaf75568fbf6",
+  measurementId: "G-MBNZSWJRXF"
 };
 
-
-
-//const ANDROID_CLIENT_ID = "91528963395-991jv40h0q0ttimemukjo4qn 7l2i8jjd.apps.googleusercontent.com";
-
-//const IOS_CLIENT_ID = "your-ios-client-id";
-
-//import firebase from 'firebase';
-//import { firebaseConfig } from './config';
-
-//firebase.initializeApp(firebaseConfig);
-
-/*const MainNavigator = createSwitchNavigator({
-  Login: {screen: LoginScreen},
-  Home: {screen: HomeScreen}
-});
-const App = createAppContainer(MainNavigator);*/
-
+firebase.initializeApp(firebaseConfig);
 
 export default class App extends React.Component {
 
-  state = {
-    loading: false,
-    query: '',
-    barcodes: [],
-    description: '',
-    ingredients: '',
-    nutrients: [],
-    foods: [],
-    userRecipes: [],
-    data: '',
-    cameraOn: false,
-    hasPermission: null,
-    loggedIn: true,
-    scanned: false,
-    showNutritionInfo: false,
+  constructor(props){
+    super(props)
 
-    fakeRecipes: [
-      {
-        id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
-        title: 'Recipe 1',
-      },
-      {
-        id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f63',
-        title: 'Recipe 2',
-      },
-      {
-        id: '58694a0f-3da1-471f-bd96-145571e29d72',
-        title: 'Recipe 3',
-      },
-      {
-        id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28bww',
-        title: 'Recipe 4',
-      },
-      {
-        id: '3ac68afc-c605-48d3-a4f8-fbd9w7f63',
-        title: 'Recipe 5',
-      },
-      {
-        id: '58694a0f-3da1-471f-bd96-efnje29d72',
-        title: 'Recipe 6',
-      },
-      {
-        id: 'bd7acbea-c1b1-46c2-aed5d53abb28bww',
-        title: 'Recipe 7',
-      },
-      {
-        id: '3ac68afc-c605-48a4f8-fbd9w7f63',
-        title: 'Recipe 8',
-      },
-      {
-        id: '58694a0f-3da16-efnje29d72',
-        title: 'Recipe 9',
-      },
-    ]
-  };
+    this.state = ({
+      email: '',
+      password: '',
+      query: '',
+      barcodes: [],
+      description: '',
+      ingredients: '',
+      nutrients: [],
+      foods: [],
+      userRecipe: '',
+      data: '',
+      cameraOn: false,
+      hasPermission: null,
+      loggedIn: false,
+      scanned: false,
+      showNutritionInfo: false,
+      ingredListPlaceHold: [],
+      ingredPlaceHold: '',
+      isRender: false,
+      isModalVis: false,
+      inputText: '',
+      editItem: '',
+
+      recipeIngredients: [
+        {
+          id: 1,
+          title: 'Item 1'
+        },
+        {
+          id: 2,
+          title: 'Item 2'
+        },
+        {
+          id: 3,
+          title: 'Item 3'
+        },
+        {
+          id: 4,
+          title: 'Item 4'
+        },
+        {
+          id: 5,
+          title: 'Item 5'
+        },
+        {
+          id: 6,
+          title: 'Item 6'
+        },
+        {
+          id: 7,
+          title: 'Item 7'
+        },
+        {
+          id: 8,
+          title: 'Item 8'
+        },
+        {
+          id: 9,
+          title: 'Item 9'
+        },
+        {
+          id: 10,
+          title: 'Item 10'
+        }
+      ],
+    
+      tempRecipes: [
+        {
+          id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
+          title: 'Recipe 1',
+        },
+        {
+          id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f63',
+          title: 'Recipe 2',
+        },
+        {
+          id: '58694a0f-3da1-471f-bd96-145571e29d72',
+          title: 'Recipe 3',
+        },
+        {
+          id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28bww',
+          title: 'Recipe 4',
+        },
+        {
+          id: '3ac68afc-c605-48d3-a4f8-fbd9w7f63',
+          title: 'Recipe 5',
+        },
+        {
+          id: '58694a0f-3da1-471f-bd96-efnje29d72',
+          title: 'Recipe 6',
+        },
+        {
+          id: 'bd7acbea-c1b1-46c2-aed5d53abb28bww',
+          title: 'Recipe 7',
+        },
+        {
+          id: '3ac68afc-c605-48a4f8-fbd9w7f63',
+          title: 'Recipe 8',
+        },
+        {
+          id: '58694a0f-3da16-efnje29d72',
+          title: 'Recipe 9',
+        },
+      ],
+
+    })
+
+  }
+
+
+  signupUser = (email, password) => {
+    try{
+      if(this.state.password.length<8){
+        alert("Password must be at least 8 characters")
+        return;
+      }
+
+      else{
+      this.setState({ cameraOn: false, makingRecipe: false, loggedIn: true})
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+      console.log(1)
+      }
+
+    }
+
+    catch(error){
+      console.log(error.toString())
+    }
+
+  }
+
+  loginUser = (email, password) => {
+    try{
+      if(this.state.password.length<8){
+        alert("Password must be at least 8 characters")
+        return;
+      }
+
+      else{
+        this.setState({ cameraOn: false, makingRecipe: false, loggedIn: true})
+        firebase.auth().signInWithEmailAndPassword(email, password).then(function(user){
+          console.log(1)
+      })
+      }
+    }
+
+    catch(error){
+      console.log(error.toString())
+    }
+  }
+
+  signOutUser = () => {
+    this.setState({ cameraOn: false, makingRecipe: false, loggedIn: false})
+  }
 
 
 
@@ -104,36 +187,41 @@ export default class App extends React.Component {
   handleBackSearch() {
     this.setState({ cameraOn: false });
     this.setState({ scanned: false });
-    this.setState({ makingRecipe: false});
+    this.setState({ makingRecipe: true});
     this.setState({ showNutritionInfo: false});
   }
 
   renderLogin(){
     return (
-      <Container style = {styles.container}>
-        <Form>
-          <Item floatingLabel>
-            <Label>Email</Label>
-            <Input 
-              autoCorrect = {false}
-              autoCapitalize = "none"
-              />
-          </Item>
-
-          <Item floatingLabel>
-            <Label>Password</Label>
-            <Input 
-              secureTextEntry = {true}
-              autoCorrect = {false}
-              autoCapitalize = "none"
-              />
-          </Item>
-
+      <View style={styles.container}>
+        <TextInput style={styles.smallText}
+          placeholder="Email"
+          textContentType = 'emailAddress'
+          autoCorrect = {false}
+          onChangeText = {(email) => this.setState({email})}
+        />
+        <TextInput style = {styles.smallText2} 
+          placeholder="Password"
+          textContentType = 'password'
+          secureTextEntry = {true}
+          autoCorrect = {false}
+          onChangeText = {(password) => this.setState({password})}
+        />
         <Button 
+        onPress = {() => this.loginUser(this.state.email, this.state.password)}
         title = "Login"
         ></Button>
-        </Form>
-      </Container>
+        <Button 
+        onPress = {() => this.signupUser(this.state.email, this.state.password)}
+        title = "Sign up"
+        ></Button>
+        <Text style = {styles.title}> myRecipe </Text>
+        <Text style = {styles.logo}> \ </Text>
+        <Text style = {styles.logo}> (  )(  ) </Text>
+        <Text style = {styles.logo}> (  )(  )(  ) </Text>
+        <Text style = {styles.logo}> (  )(  ) </Text>
+        <Text style = {styles.logo}> (  ) </Text>
+      </View>
     );
   }
 
@@ -143,22 +231,22 @@ export default class App extends React.Component {
         justifyContent: "center",
         alignItems: "stretch", 
         }}>
-        <Text style = {{paddingTop: "20%", alignSelf: 'center',}} > Signed in as</Text>
-        <Text style = {styles.title}> Bjaimes </Text>
+        <Text style = {{paddingTop: "5%", alignSelf: 'center',}} > Signed in as</Text>
+        <Text style = {styles.smallText}> {this.state.email} </Text>
         <Text style = {styles.smallText}> Your Recipes: </Text>
         <FlatList 
           style={{ height: "40%", paddingBottom: "30%" }}
-          data={this.state.fakeRecipes}
+          data={this.state.tempRecipes}
           renderItem={this.renderRecipe}
         />
         <Button 
         style = {{ backgroundColor: "green" }}
-        onPress = {() => this.setState({ makingRecipe: true })}
+        onPress = {() => this.setState({ cameraOn: false, makingRecipe: true, userRecipe: '' })}
         title = "Create New Recipe"
         ></Button>
         <Button 
-        onPress = {() => this.setState({ cameraOn: true, makingRecipe: false })}
-        title = "Scan Barcode"
+        onPress = {() => this.setState({ cameraOn: false, makingRecipe: false, loggedIn: false})}
+        title = "Sign Out"
         ></Button>
       </View>
     );
@@ -169,6 +257,8 @@ export default class App extends React.Component {
       <View style={styles.container}>
         <TextInput style={styles.smallText}
           placeholder="Enter recipe name"
+          value = {this.state.userRecipe}
+          onChangeText = {(userRecipe) => this.setState({userRecipe})}
         />
         <TextInput style = {styles.search} 
           onChangeText={this.handleInputSearch} 
@@ -188,6 +278,12 @@ export default class App extends React.Component {
           renderItem={this.renderFood}
           keyExtractor={item => item.fdcID}
           //extraData = {selectedId} will be used for selection of item to add
+        />
+        <Text style = {styles.smallerText}> Ingredients in this Recipe: </Text>
+        <FlatList 
+          data={this.state.recipeIngredients}
+          renderItem={this.renderRecipe}
+          //Attempted to create editable recipe ingredients after adding but had trouble with TouchableOpacity and modal
         />
       </View>
     );
@@ -223,10 +319,12 @@ export default class App extends React.Component {
         keyExtractor={item => item.nutrientID}
         />
         <Button title={'Add to Recipe'} 
-         onPress={() => this.handleBackSearch()} />
+         onPress={description => this.setState({ ingredPlaceHold: description, cameraOn: false, scanned: false, showNutritionInfo: false, makingRecipe: true })}
+         />
         <Button title={'Go Back'} 
          style = {styles.goBack}
-         onPress={ () => { this.setState({showNutritionInfo: false, makingRecipe: true}) }}/>
+         onPress={ () => { this.setState({cameraOn: false, scanned: false, showNutritionInfo: false, makingRecipe: true }) }}
+         />
       </View>
     )
   }
@@ -237,7 +335,7 @@ export default class App extends React.Component {
       onPress={() => {
         this.search(item.description);
         console.log(item.description);
-        this.setState({ showNutritionInfo: true, makingRecipe: false, description: item.description, scanned: true });
+        this.setState({ showNutritionInfo: true, makingRecipe: false, description: item.description, scanned: true,  recipeIngredients: item});
       }}
       title = {item.description}>
       </Button>
@@ -250,12 +348,6 @@ export default class App extends React.Component {
     </ListItem>
     )
 
-    renderIngredients = ({ item }) => (
-      <ListItem>
-        <Text>{ this.state.ingredients }</Text>
-      </ListItem>
-    )
-
   renderRecipe = ({ item }) => (
     <ListItem bottomDivider>
       <Button
@@ -263,6 +355,15 @@ export default class App extends React.Component {
       </Button>
     </ListItem>
     )
+
+  renderIngredients = ({item, index}) => {
+    return (
+      <TouchableOpacity
+      onPress = {() => onPressItem(item)}>
+        <Text> {item.text} </Text>
+      </TouchableOpacity>
+    )
+  }
 
   handleBarCodeScanned = async ({ type, data }) => {
     this.setState({ scanned: true })
@@ -333,13 +434,19 @@ export default class App extends React.Component {
 const styles = StyleSheet.create({
   title: {
     fontSize: 60,
-    color: "#05CDE4",
+    color: "#6F2DA8",
+    alignSelf: 'center',
+    paddingTop: "28%",
+  },
+  logo: {
+    fontSize: 20,
+    color: "#6F2DA8",
     alignSelf: 'center',
   },
   search: {
     height: 100,
     fontSize: 20,
-    color: "#05CDE4",
+    color: "#6F2DA8",
     alignSelf: 'center',
     paddingTop: "10%",
     paddingBottom: "5%"
@@ -347,12 +454,6 @@ const styles = StyleSheet.create({
   container: {
     marginHorizontal: 20,
     height:"97%"
-  },
-  container2: {
-    flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    padding: 10
   },
   scanner: {
     flex: 1,
@@ -372,7 +473,21 @@ const styles = StyleSheet.create({
   },
   smallText:{
     fontSize: 30,
-    color: "#05CDE4",
+    color: "#6F2DA8",
+    alignSelf: 'center',
+    paddingTop: "20%",
+    paddingBottom: "5%"
+  },
+  smallText2:{
+    fontSize: 30,
+    color: "#6F2DA8",
+    alignSelf: 'center',
+    paddingTop: "5%",
+    paddingBottom: "5%"
+  },
+  smallerText:{
+    fontSize: 20,
+    color: "#6F2DA8",
     alignSelf: 'center',
     paddingTop: "20%",
     paddingBottom: "5%"
@@ -383,14 +498,14 @@ const styles = StyleSheet.create({
   description:{
     paddingTop: "15%",
     fontSize: 20,
-    color: "#05CDE4",
+    color: "#6F2DA8",
     alignSelf: 'center',
     fontWeight: "bold"
   },
   ingredients:{
     paddingTop: "5%",
     fontSize: 15,
-    color: "#05CDE4",
+    color: "#6F2DA8",
     alignSelf: 'center',
   }
 })
